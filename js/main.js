@@ -1,116 +1,47 @@
 /* jshint esversion: 6 */
-/*
-const url = 'docs/pdf.pdf';
-
-let pdfDoc = null,
-  pageNum = 1,
-  pageIsRendering = false,
-  pageNumIsPending = null;
-
-const scale = 1.5,
-  canvas = document.querySelector('#pdf-render'),
-  ctx = canvas.getContext('2d');
-
-// Render the page
-const renderPage = num => {
-  pageIsRendering = true;
-
-    // Get page
-  pdfDoc.getPage(num).then(page => {
-      // Set scale
-    const viewport = page.getViewport({ scale });
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
-
-    const renderCtx = {
-      canvasContext: ctx,
-      viewport
-    };
-
-    page.render(renderCtx).promise.then(() => {
-      pageIsRendering = false;
-
-      if (pageNumIsPending !== null) {
-        renderPage(pageNumIsPending);
-        pageNumIsPending = null;
-      }
-    });
-
-      // Output current page
-    document.querySelector('#page-num').textContent = num;
-  });
-};
-
-// Check for pages rendering
-const queueRenderPage = num => {
-  if (pageIsRendering) {
-    pageNumIsPending = num;
-  } else {
-    renderPage(num);
-  }
-};
-
-// Show Prev Page
-const showPrevPage = () => {
-  if (pageNum <= 1) {
-    return;
-  }
-  pageNum--;
-  queueRenderPage(pageNum);
-};
-
-// Show Next Page
-const showNextPage = () => {
-  if (pageNum >= pdfDoc.numPages) {
-    return;
-  }
-  pageNum++;
-  queueRenderPage(pageNum);
-};
-
-// Get Document
-pdfjsLib
-  .getDocument(url)
-  .promise.then(pdfDoc_ => {
-    pdfDoc = pdfDoc_;
-
-    document.querySelector('#page-count').textContent = pdfDoc.numPages;
-
-    renderPage(pageNum);
-  })
-  .catch(err => {
-      // Display error
-    const div = document.createElement('div');
-    div.className = 'error';
-    div.appendChild(document.createTextNode(err.message));
-    document.querySelector('body').insertBefore(div, canvas);
-// Remove top bar
-    document.querySelector('.top-bar').style.display = 'none';
-  });
-*/
-
-let currPg = 1,
-    hasSpreads = true,
-    renderRange = [currPg];
-// Button Events
-// document.querySelector('#prev-page').addEventListener('click', showPrevPage);
-// document.querySelector('#next-page').addEventListener('click', showNextPage);
-document
-    .querySelector('#prev-page')
-    .addEventListener('click', logThis('prev-page'));
-document
-    .querySelector('#next-page')
-    .addEventListener('click', logThis('next-page'));
-
-function logThis(someString) {
-    return () => console.log(someString);
-}
 
 function renderPDF(url, canvasContainer, options) {
     options = options || {scale: 1};
+    var thisPdf = null,
+        currPg = 1,
+        displayInSpreads = false;
 
+    function showPrevPage() {
+        if (currPg <= 1) {
+            return;
+        }
+        if (displayInSpreads) {
+            currPg -= 2;
+        } else {
+            currPg -= 1;
+        }
+        canvasContainer.innerHTML = '';
+        renderPages(thisPdf);
+    }
+
+    function showNextPage() {
+        if (currPg >= thisPdf.numPages) {
+            return;
+        }
+        if (displayInSpreads) {
+            currPg += 2;
+        } else {
+            currPg += 1;
+        }
+        canvasContainer.innerHTML = '';
+        renderPages(thisPdf);
+    }
+
+    // Update the "page x of y" counter in the top-bar
+    function showCurrPg() {
+        document.getElementById('page-num').innerHTML = currPg;
+        document.getElementById('page-count').innerHTML = thisPdf.numPages;
+    }
+
+    // Find the current page's opposite in a reader spread. The return is an
+    // array of pages to be rendered.
     function setRenderRange(currPg) {
-        if (hasSpreads) {
+        if (displayInSpreads) {
             if (currPg % 2 === 1) {
                 return [currPg - 1, currPg];
             }
@@ -138,19 +69,19 @@ function renderPDF(url, canvasContainer, options) {
         canvasContainer.appendChild(wrapper);
 
         page.render(renderContext);
+        showCurrPg();
     }
 
     function renderPages(pdfDoc) {
-        console.log('pageNum: ' + pdfDoc.numPages);
-        console.log('currPg: ' + currPg);
-        console.log('spreadRange: ', setRenderRange(currPg));
+        thisPdf = pdfDoc;
+        // Determine whether or not to display as single page(s) or as reader
+        // spreads
+        if (pdfDoc.numPages > 3) {
+            displayInSpreads = true;
+        }
         renderRange = setRenderRange(currPg);
-        // for (var num = 1; num <= pdfDoc.numPages; num++)
-        //     pdfDoc.getPage(num).then(renderPage);
         function renderThis(num) {
-            console.log('xxx: ', num);
             if (num >= 1 && num <= pdfDoc.numPages) {
-                console.log('yyy: ', num);
                 return pdfDoc.getPage(num).then(renderPage);
             }
         }
@@ -159,6 +90,14 @@ function renderPDF(url, canvasContainer, options) {
 
     pdfjsLib.disableWorker = true;
     pdfjsLib.getDocument(url).promise.then(renderPages);
+
+    // Add event listeners to the previous and next buttons
+    document
+        .querySelector('#prev-page')
+        .addEventListener('click', showPrevPage);
+    document
+        .querySelector('#next-page')
+        .addEventListener('click', showNextPage);
 }
 
 renderPDF('docs/pdf.pdf', document.getElementById('doc-container'));

@@ -1,59 +1,133 @@
 /* jshint esversion: 6 */
 
-function renderPDF(url, canvasContainer, options) {
-    options = options || {scale: 1};
-    var thisPdf = null,
-        currPg = 1,
-        displayInSpreads = false;
+var pdfObj = {
+    currPg: 1,
+    pgCount: 1,
+    pgWidth: 612,
+    pgHeight: 792,
+    scale: 1,
+    displayInSpreads: false,
+    pgNumInputField: document.getElementById('pg-num'),
+    pgTotalElement: document.getElementById('page-count'),
+    docContainer: document.getElementById('doc-container'),
+    topBarElement: document.getElementById('top-bar'),
 
-    function showPrevPage() {
-        if (currPg <= 1) {
+    // Display the previous page or spread
+    showPrevPage: function() {
+        // if (pdfObj.currPg <= 1) {
+        //     return;
+        // }
+        if (pdfObj.displayInSpreads) {
+            pdfObj.currPg -= 2;
+        } else {
+            pdfObj.currPg -= 1;
+        }
+        if (pdfObj.currPg < 1) {
+            pdfObj.currPg = 1;
+        }
+        pdfObj.canvasContainer.innerHTML = '';
+        pdfObj.renderPages();
+    },
+
+    // Display the next page or spread
+    showNextPage: function() {
+        // if (pdfObj.currPg >= pdfObj.pgCount) {
+        //     return;
+        // }
+        if (pdfObj.displayInSpreads) {
+            pdfObj.currPg += 2;
+        } else {
+            pdfObj.currPg += 1;
+        }
+        if (pdfObj.currPg > pdfObj.pgCount) {
+            pdfObj.currPg = pdfObj.pgCount;
+        }
+        pdfObj.canvasContainer.innerHTML = '';
+        pdfObj.renderPages();
+    },
+
+    // Display page 1
+    showFirstPage: function() {
+        if (pdfObj.currPg == 1) {
             return;
         }
-        if (displayInSpreads) {
-            currPg -= 2;
-        } else {
-            currPg -= 1;
-        }
-        canvasContainer.innerHTML = '';
-        renderPages(thisPdf);
-    }
+        pdfObj.currPg = 1;
+        pdfObj.canvasContainer.innerHTML = '';
+        pdfObj.renderPages();
+    },
 
-    function showNextPage() {
-        if (currPg >= thisPdf.numPages) {
+    // Display the last page
+    showLastPage: function() {
+        if (pdfObj.currPg == pdfObj.pgCount) {
             return;
         }
-        if (displayInSpreads) {
-            currPg += 2;
-        } else {
-            currPg += 1;
+        pdfObj.currPg = pdfObj.pgCount;
+        pdfObj.canvasContainer.innerHTML = '';
+        pdfObj.renderPages();
+    },
+
+    // Dipsplay page x. Where x is input from a text filed
+    jumpToPg: function(key) {
+        if (key.keyCode == 13) {
+            var newPgNum = parseInt(key.target.value);
+            if (key.target.value < 1) {
+                newPgNum = 1;
+            }
+            if (key.target.value > pdfObj.pgCount) {
+                newPgNum = pdfObj.pgCount;
+            }
+            pdfObj.currPg = newPgNum;
+            pdfObj.canvasContainer.innerHTML = '';
+            pdfObj.renderPages();
         }
-        canvasContainer.innerHTML = '';
-        renderPages(thisPdf);
-    }
+    },
 
     // Update the "page x of y" counter in the top-bar
-    function showCurrPg() {
-        document.getElementById('page-num').innerHTML = currPg;
-        document.getElementById('page-count').innerHTML = thisPdf.numPages;
-    }
+    showCurrPg: function() {
+        pdfObj.pgNumInputField.value = '';
+        pdfObj.pgNumInputField.placeholder = pdfObj.currPg;
+        pdfObj.pgTotalElement.innerHTML = pdfObj.pgCount;
+    },
 
-    // Find the current page's opposite in a reader spread. The return is an
-    // array of pages to be rendered.
-    function setRenderRange(currPg) {
-        if (displayInSpreads) {
-            if (currPg % 2 === 1) {
-                return [currPg - 1, currPg];
+    // Zoom in on current page or spread
+    scaleUp: function() {
+        pdfObj.scale = pdfObj.scale + 0.25;
+        pdfObj.canvasContainer.innerHTML = '';
+        pdfObj.renderPages();
+    },
+
+    // Zoom out current page or spread
+    scaleDown: function() {
+        pdfObj.scale = pdfObj.scale - 0.25;
+        pdfObj.canvasContainer.innerHTML = '';
+        pdfObj.renderPages();
+    },
+
+    // Re size the pdf to fit in within the display
+    fitWindow: function() {
+        pdfObj.setInitialScale();
+        pdfObj.canvasContainer.innerHTML = '';
+        pdfObj.renderPages();
+    },
+
+    // Determine which page will get displayed with the current page
+    setRenderRange: function() {
+        if (pdfObj.displayInSpreads) {
+            if (pdfObj.pgCount == 2) {
+                return [1, 2];
             }
-            if (currPg % 2 === 0) {
-                return [currPg, currPg + 1];
+            if (pdfObj.currPg % 2 === 1) {
+                return [pdfObj.currPg - 1, pdfObj.currPg];
+            }
+            if (pdfObj.currPg % 2 === 0) {
+                return [pdfObj.currPg, pdfObj.currPg + 1];
             }
         }
-        return [currPg];
-    }
+        return [pdfObj.currPg];
+    },
 
-    function renderPage(page) {
-        var viewport = page.getViewport({scale: options.scale});
+    renderPage: function(page) {
+        var viewport = page.getViewport({scale: pdfObj.scale});
         var wrapper = document.createElement('div');
         wrapper.className = 'canvas-wrapper';
         var canvas = document.createElement('canvas');
@@ -66,38 +140,91 @@ function renderPDF(url, canvasContainer, options) {
         canvas.height = viewport.height;
         canvas.width = viewport.width;
         wrapper.appendChild(canvas);
-        canvasContainer.appendChild(wrapper);
+        pdfObj.canvasContainer.appendChild(wrapper);
 
         page.render(renderContext);
-        showCurrPg();
-    }
+        pdfObj.showCurrPg();
+    },
 
-    function renderPages(pdfDoc) {
-        thisPdf = pdfDoc;
-        // Determine whether or not to display as single page(s) or as reader
-        // spreads
-        if (pdfDoc.numPages > 3) {
-            displayInSpreads = true;
+    renderPages: function() {
+        if (!pdfObj.displayInSpreads) {
+            pdfObj.docContainer.style.justifyContent = 'center';
         }
-        renderRange = setRenderRange(currPg);
-        function renderThis(num) {
-            if (num >= 1 && num <= pdfDoc.numPages) {
-                return pdfDoc.getPage(num).then(renderPage);
+        renderRange = pdfObj.setRenderRange();
+        renderRange.map((num) => {
+            if (num >= 1 && num <= pdfObj.pgCount) {
+                return pdfObj.pdfDoc.getPage(num).then(pdfObj.renderPage);
             }
+        });
+    },
+
+    // Compares the window size to the pdf page size and calculates the scale
+    // size that will fill the window. It is assumed that all pdf pages are the
+    // same size
+    setInitialScale: function() {
+        var topBarHeight = pdfObj.topBarElement.clientHeight;
+        var fullWidthScaleFactor = window.innerWidth / pdfObj.pgWidth;
+        if (pdfObj.pgCount > 1) {
+            fullWidthScaleFactor = window.innerWidth / (pdfObj.pgWidth * 2);
         }
-        renderRange.map(renderThis);
+        var pdfViewHeight = window.innerHeight - topBarHeight;
+        var fullHeightScaleFactor = pdfViewHeight / pdfObj.pgHeight;
+        if (fullWidthScaleFactor * pdfObj.pgHeight > window.innerHeight) {
+            pdfObj.scale = fullHeightScaleFactor;
+        } else {
+            pdfObj.scale = fullWidthScaleFactor;
+        }
+    },
+
+    initRender: function(pdfjsDoc) {
+        pdfObj.pdfDoc = pdfjsDoc;
+        pdfObj.pgCount = pdfjsDoc.numPages;
+        // Determine whether or not to display as a single page or as reader
+        // spreads
+        if (pdfObj.pgCount > 1) {
+            pdfObj.displayInSpreads = true;
+        }
+        pdfjsDoc
+            .getPage(1)
+            .then((pdfPg1) => {
+                pdfObj.pgWidth = pdfPg1._pageInfo.view[2];
+                pdfObj.pgHeight = pdfPg1._pageInfo.view[3];
+            })
+            .then(pdfObj.setInitialScale)
+            .then(pdfObj.renderPages);
+    },
+
+    // renderPDF is the main method in this object. Think of it as a constructor
+    // function
+    renderPDF: function renderPDF(url, canvasContainer) {
+        pdfObj.canvasContainer = canvasContainer;
+        pdfjsLib.disableWorker = true;
+        pdfjsLib.getDocument(url).promise.then(pdfObj.initRender);
     }
+};
 
-    pdfjsLib.disableWorker = true;
-    pdfjsLib.getDocument(url).promise.then(renderPages);
+pdfObj.renderPDF('docs/pdf.pdf', document.getElementById('doc-container'));
 
-    // Add event listeners to the previous and next buttons
-    document
-        .querySelector('#prev-page')
-        .addEventListener('click', showPrevPage);
-    document
-        .querySelector('#next-page')
-        .addEventListener('click', showNextPage);
-}
+// Add event listeners to the page changing control elements
+document
+    .querySelector('#first-page')
+    .addEventListener('click', pdfObj.showFirstPage);
+document
+    .querySelector('#last-page')
+    .addEventListener('click', pdfObj.showLastPage);
+document
+    .querySelector('#prev-page')
+    .addEventListener('click', pdfObj.showPrevPage);
+document
+    .querySelector('#next-page')
+    .addEventListener('click', pdfObj.showNextPage);
+document.querySelector('#pg-num').addEventListener('keyup', pdfObj.jumpToPg);
 
-renderPDF('docs/pdf.pdf', document.getElementById('doc-container'));
+// Add event listeners to page scaling control elements
+document.querySelector('#scale-up').addEventListener('click', pdfObj.scaleUp);
+document
+    .querySelector('#scale-down')
+    .addEventListener('click', pdfObj.scaleDown);
+document
+    .querySelector('#fit-window')
+    .addEventListener('click', pdfObj.fitWindow);

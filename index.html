@@ -14,17 +14,39 @@
         <title>PDF Viewer</title>
     </head>
     <body>
-        <div class="top-bar">
-            <button class="btn" id="prev-page">
-                <i class="fas fa-arrow-circle-left"></i> Prev Page
+        <div id="top-bar" class="top-bar">
+            <button class="btn top-bar-item" id="first-page">
+                Beginning
             </button>
-            <button class="btn" id="next-page">
-                Next Page <i class="fas fa-arrow-circle-right"></i>
+            <button class="btn top-bar-item" id="prev-page">
+                <i class="fas fa-arrow-circle-left"></i> Prev
             </button>
-            <span class="page-info">
-                Page <span id="page-num"></span> of
+            <span class="page-info top-bar-item">
+                <input
+                    type="number"
+                    name="jump-to-page"
+                    value=""
+                    id="pg-num"
+                    size="3"
+                />
+                of
                 <span id="page-count"></span>
             </span>
+            <button class="btn top-bar-item" id="next-page">
+                Next <i class="fas fa-arrow-circle-right"></i>
+            </button>
+            <button class="btn top-bar-item" id="last-page">
+                End
+            </button>
+            <button id="scale-up" class="btn top-bar-item">
+                +
+            </button>
+            <button id="scale-down" class="btn top-bar-item">
+                -
+            </button>
+            <button id="fit-window" class="btn top-bar-item">
+                Fit Window
+            </button>
         </div>
 
         <div id="doc-container"></div>

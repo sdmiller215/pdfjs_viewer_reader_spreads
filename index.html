@@ -5,21 +5,33 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
         <link
+            href="https://fonts.googleapis.com/icon?family=Material+Icons"
             rel="stylesheet"
-            href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
-            integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
-            crossorigin="anonymous"
         />
         <link rel="stylesheet" href="css/style.css" />
         <title>PDF Viewer</title>
     </head>
     <body>
         <div id="top-bar" class="top-bar">
-            <button class="btn top-bar-item" id="first-page">
-                Beginning
+            <button
+                class="btn top-bar-item"
+                id="first-page"
+                aria-label="First Page"
+            >
+                <i class="material-icons" aria-hidden="true" focusable="false">
+                    first_page
+                </i>
+                <span id="button-label" hidden>First Page</span>
             </button>
-            <button class="btn top-bar-item" id="prev-page">
-                <i class="fas fa-arrow-circle-left"></i> Prev
+            <button
+                class="btn top-bar-item"
+                id="prev-page"
+                aria-label="Previous Page"
+            >
+                <i class="material-icons" aria-hidden="true" focusable="false">
+                    chevron_left
+                </i>
+                <span hidden>Previous Page</span>
             </button>
             <span class="page-info top-bar-item">
                 <input
@@ -28,24 +40,56 @@
                     value=""
                     id="pg-num"
                     size="3"
+                    aria-label="Jump to Page"
                 />
                 of
                 <span id="page-count"></span>
             </span>
-            <button class="btn top-bar-item" id="next-page">
-                Next <i class="fas fa-arrow-circle-right"></i>
+            <button
+                class="btn top-bar-item"
+                id="next-page"
+                aria-label="Next Page"
+            >
+                <i class="material-icons" aria-hidden="true" focusable="false">
+                    chevron_right
+                </i>
+                <span hidden>Next Page</span>
             </button>
-            <button class="btn top-bar-item" id="last-page">
-                End
+            <button
+                class="btn top-bar-item"
+                id="last-page"
+                aria-label="Last Page"
+            >
+                <i class="material-icons" aria-hidden="true" focusable="false">
+                    last_page
+                </i>
+                <span hidden>Last Page</span>
             </button>
-            <button id="scale-up" class="btn top-bar-item">
-                +
+            <button id="scale-up" class="btn top-bar-item" aria-label="Zoom In">
+                <i class="material-icons" aria-hidden="true" focusable="false">
+                    zoom_in
+                </i>
+                <span hidden>Zoom In</span>
             </button>
-            <button id="scale-down" class="btn top-bar-item">
-                -
+            <button
+                id="scale-down"
+                class="btn top-bar-item"
+                aria-label="Zoom Out"
+            >
+                <i class="material-icons" aria-hidden="true" focusable="false">
+                    zoom_out
+                </i>
+                <span hidden>Zoom Out</span>
             </button>
-            <button id="fit-window" class="btn top-bar-item">
-                Fit Window
+            <button
+                id="fit-window"
+                class="btn top-bar-item"
+                aria-label="Fit to Window"
+            >
+                <i class="material-icons" aria-hidden="true" focusable="false">
+                    zoom_out_map
+                </i>
+                <span hidden>Fit Window</span>
             </button>
         </div>
 

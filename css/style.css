@@ -6,8 +6,9 @@
 .top-bar {
     background: #333;
     color: #fff;
-    padding: 1rem;
+    padding: 0.25rem;
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-content: center;
 }
@@ -22,11 +23,15 @@
     border: none;
     outline: none;
     cursor: pointer;
-    padding: 0.7rem 2rem;
+    padding: 0.5rem 0.5rem;
+    flex: 1 1 1rem;
+    margin: 0.25rem;
+    max-width: 10rem;
 }
 
-.btn:hover {
-    opacity: 0.9;
+.btn:hover,
+.btn:focus {
+    opacity: 0.8;
 }
 
 .page-info {

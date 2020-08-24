@@ -66,7 +66,7 @@ var pdfObj = {
         pdfObj.renderPages();
     },
 
-    // Dipsplay page x. Where x is input from a text filed
+    // Dipsplay page x. Where x is input from a text field
     jumpToPg: function(key) {
         if (key.keyCode == 13) {
             var newPgNum = parseInt(key.target.value);
